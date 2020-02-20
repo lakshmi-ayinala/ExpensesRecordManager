@@ -31,4 +31,15 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
+public:
+	void InitExpensesListControl();
+	void Serialize(CArchive &ar);
+	void InitControls();
+	afx_msg void OnBnClickedBtnStore();
+	afx_msg void OnBnClickedBtnLoad();
+	CListCtrl m_ExpensesList;
+	CString m_MainItem;
+	CString m_SubItem;
+	UINT m_Quantity;
+	UINT m_Rate;
 };
