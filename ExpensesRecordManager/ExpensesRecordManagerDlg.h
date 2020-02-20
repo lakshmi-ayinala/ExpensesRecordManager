@@ -4,6 +4,27 @@
 
 #pragma once
 
+typedef struct {
+	int Day;
+	int Month;
+	int Year;
+}Date;
+
+typedef struct {
+	int from;
+	int to;
+}FY;	// Financial Year
+
+typedef struct {
+	Date _date;
+	FY _fy;
+	int _quater;
+	char _mainItem[256];
+	char _subItem[256];
+	int _rate;
+	int _quantity;
+	int _amount;
+}Record;
 
 // CExpensesRecordManagerDlg dialog
 class CExpensesRecordManagerDlg : public CDialogEx
@@ -33,6 +54,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	void InitExpensesListControl();
+	void InsertRecord(int row, Record &rec);
 	void Serialize(CArchive &ar);
 	void InitControls();
 	afx_msg void OnBnClickedBtnStore();
@@ -42,4 +64,7 @@ public:
 	CString m_SubItem;
 	UINT m_Quantity;
 	UINT m_Rate;
+	afx_msg void OnCbnSelchangeFySel();
+	CComboBox m_FySelCtrl;
+	CComboBox m_QuaterSelCtrl;
 };

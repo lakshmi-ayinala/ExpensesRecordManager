@@ -71,6 +71,8 @@ void CExpensesRecordManagerDlg::DoDataExchange(CDataExchange* pDX)
 	DDV_MinMaxUInt(pDX, m_Quantity, 1, UINT_MAX);
 	DDX_Text(pDX, IDC_RATE, m_Rate);
 	DDV_MinMaxUInt(pDX, m_Rate, 1, UINT_MAX);
+	DDX_Control(pDX, IDC_FY_SEL, m_FySelCtrl);
+	DDX_Control(pDX, IDC_QUATER_SEL, m_QuaterSelCtrl);
 }
 
 BEGIN_MESSAGE_MAP(CExpensesRecordManagerDlg, CDialogEx)
@@ -79,6 +81,7 @@ BEGIN_MESSAGE_MAP(CExpensesRecordManagerDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_BTN_STORE, &CExpensesRecordManagerDlg::OnBnClickedBtnStore)
 	ON_BN_CLICKED(IDC_BTN_LOAD, &CExpensesRecordManagerDlg::OnBnClickedBtnLoad)
+	ON_CBN_SELCHANGE(IDC_FY_SEL, &CExpensesRecordManagerDlg::OnCbnSelchangeFySel)
 END_MESSAGE_MAP()
 
 
@@ -113,8 +116,9 @@ BOOL CExpensesRecordManagerDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
-	InitExpensesListControl();
+	ShowWindow(SW_SHOWMAXIMIZED);
 
+	InitControls();
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -173,24 +177,50 @@ void CExpensesRecordManagerDlg::InitExpensesListControl()
 	m_ExpensesList.InsertColumn(
 		0,              // Rank/order of item 
 		L"SNo",          // Caption for this header 
-		LVCFMT_LEFT,    // Relative position of items under header 
-		100);           // Width of items under header
+		LVCFMT_CENTER,    // Relative position of items under header 
+		50);           // Width of items under header
 
 	m_ExpensesList.InsertColumn(1, L"Date", LVCFMT_CENTER, 80);
-	m_ExpensesList.InsertColumn(2, L"Financial Year", LVCFMT_LEFT, 80);
-	m_ExpensesList.InsertColumn(3, L"Quater", LVCFMT_LEFT, 80);
-	m_ExpensesList.InsertColumn(4, L"Main Item", LVCFMT_LEFT, 100);
-	m_ExpensesList.InsertColumn(5, L"Sub-Item", LVCFMT_LEFT, 80);
-	m_ExpensesList.InsertColumn(6, L"Rate", LVCFMT_LEFT, 80);
-	m_ExpensesList.InsertColumn(7, L"Quantity", LVCFMT_LEFT, 80);
-	m_ExpensesList.InsertColumn(8, L"Amount", LVCFMT_LEFT, 80);
+	m_ExpensesList.InsertColumn(2, L"Financial Year", LVCFMT_CENTER, 100);
+	m_ExpensesList.InsertColumn(3, L"Quater", LVCFMT_CENTER, 50);
+	m_ExpensesList.InsertColumn(4, L"Main Item", LVCFMT_CENTER, 150);
+	m_ExpensesList.InsertColumn(5, L"Sub-Item", LVCFMT_CENTER, 150);
+	m_ExpensesList.InsertColumn(6, L"Rate", LVCFMT_CENTER, 70);
+	m_ExpensesList.InsertColumn(7, L"Quantity", LVCFMT_CENTER, 70);
+	m_ExpensesList.InsertColumn(8, L"Amount", LVCFMT_CENTER, 100);
+}
 
+void CExpensesRecordManagerDlg::InsertRecord(int row, Record & rec)
+{
 	int nItem;
+	CString _format;
 
-	nItem = m_ExpensesList.InsertItem(0, L"1");
-	m_ExpensesList.SetItemText(nItem, 1, L"Mark");
-	m_ExpensesList.SetItemText(nItem, 2, L"45");
-	m_ExpensesList.SetItemText(nItem, 3, L"Address 1");
+	_format.Format(L"%d", row);
+	nItem = m_ExpensesList.InsertItem(0, _format);
+
+	_format.Format(L"%d/%d/%d", rec._date.Day, rec._date.Month, rec._date.Year);
+	m_ExpensesList.SetItemText(nItem, 1, _format);
+
+	_format.Format(L"%d-%d", rec._fy.from, rec._fy.to);
+	m_ExpensesList.SetItemText(nItem, 2, _format);
+
+	_format.Format(L"Q%d", rec._quater);
+	m_ExpensesList.SetItemText(nItem, 3, _format);
+
+	_format.Format(L"%s", rec._mainItem);
+	m_ExpensesList.SetItemText(nItem, 4, _format);
+
+	_format.Format(L"%s", rec._subItem);
+	m_ExpensesList.SetItemText(nItem, 5, _format);
+
+	_format.Format(L"%d", rec._rate);
+	m_ExpensesList.SetItemText(nItem, 6, _format);
+
+	_format.Format(L"%d", rec._quantity);
+	m_ExpensesList.SetItemText(nItem, 7, _format);
+
+	_format.Format(L"%d", rec._amount);
+	m_ExpensesList.SetItemText(nItem, 8, _format);
 }
 
 void CExpensesRecordManagerDlg::Serialize(CArchive & ar)
@@ -199,6 +229,18 @@ void CExpensesRecordManagerDlg::Serialize(CArchive & ar)
 
 void CExpensesRecordManagerDlg::InitControls()
 {
+	m_FySelCtrl.InsertString(0, L"-- Select --");
+	m_QuaterSelCtrl.InsertString(0, L"-- Select --");
+
+	m_FySelCtrl.SetCueBanner(L"-- Select --");
+	m_QuaterSelCtrl.SetCueBanner(L"-- Select --");
+
+	m_FySelCtrl.SetCurSel(0);
+	m_QuaterSelCtrl.SetCurSel(0);
+
+
+
+	InitExpensesListControl();
 }
 
 
@@ -209,6 +251,12 @@ void CExpensesRecordManagerDlg::OnBnClickedBtnStore()
 
 
 void CExpensesRecordManagerDlg::OnBnClickedBtnLoad()
+{
+	
+}
+
+
+void CExpensesRecordManagerDlg::OnCbnSelchangeFySel()
 {
 	
 }
