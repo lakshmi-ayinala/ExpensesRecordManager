@@ -56,5 +56,8 @@
     <Image Include="res\ExpensesRecordManager.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\Bill.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

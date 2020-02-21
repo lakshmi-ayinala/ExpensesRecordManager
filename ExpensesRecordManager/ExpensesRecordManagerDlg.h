@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <vector>
+
 typedef struct {
 	int Day;
 	int Month;
@@ -55,8 +57,10 @@ protected:
 public:
 	void InitExpensesListControl();
 	void InsertRecord(int row, Record &rec);
-	void Serialize(CArchive &ar);
+	int Serialize(CArchive &ar, Record &rec);
 	void InitControls();
+	Date m_Today;
+	std::vector<Record> m_RecordVec;
 	afx_msg void OnBnClickedBtnStore();
 	afx_msg void OnBnClickedBtnLoad();
 	CListCtrl m_ExpensesList;
@@ -66,5 +70,8 @@ public:
 	UINT m_Rate;
 	afx_msg void OnCbnSelchangeFySel();
 	CComboBox m_FySelCtrl;
-	CComboBox m_QuaterSelCtrl;
+	CComboBox m_QuarterSelCtrl;
+	CDateTimeCtrl m_DatePicker;
+	CStatic m_StatusCtrl;
+	afx_msg void OnBnClickedBtnDownload();
 };
