@@ -12,7 +12,8 @@
 #endif
 
 #define FY_START 2000
-#define FILE_NAME_FORMAT L"Database\\ERM_%d-%d_Q%d.edb"
+#define DB_DIRECTORY L"Database_v101"
+#define FILE_NAME_FORMAT  L"Database_v101\\ERM_%d-%d_Q%d.edb"
 
 // CAboutDlg dialog used for App About
 
@@ -131,6 +132,8 @@ BOOL CExpensesRecordManagerDlg::OnInitDialog()
 	m_ExpensesList.SetExtendedStyle(m_ExpensesList.GetExtendedStyle() | LVS_EX_FULLROWSELECT);
 	InitControls();
 	
+	_wmkdir(DB_DIRECTORY);
+
 	SetDlgItemText(IDC_STATUS, L" Ready");
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
