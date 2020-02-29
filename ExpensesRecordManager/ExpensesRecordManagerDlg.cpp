@@ -88,6 +88,8 @@ BEGIN_MESSAGE_MAP(CExpensesRecordManagerDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_LOAD, &CExpensesRecordManagerDlg::OnBnClickedBtnLoad)
 	ON_CBN_SELCHANGE(IDC_FY_SEL, &CExpensesRecordManagerDlg::OnCbnSelchangeFySel)
 	ON_BN_CLICKED(IDC_BTN_DOWNLOAD, &CExpensesRecordManagerDlg::OnBnClickedBtnDownload)
+	ON_COMMAND(ID_POPUP_DELETE, &CExpensesRecordManagerDlg::OnPopupDelete)
+	ON_WM_CONTEXTMENU()
 END_MESSAGE_MAP()
 
 
@@ -122,10 +124,14 @@ BOOL CExpensesRecordManagerDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
+	m_sRupee.Format(L"%lc", 0x20B9);
+
 	ShowWindow(SW_SHOWMAXIMIZED);
 
+	m_ExpensesList.SetExtendedStyle(m_ExpensesList.GetExtendedStyle() | LVS_EX_FULLROWSELECT);
 	InitControls();
-
+	
+	SetDlgItemText(IDC_STATUS, L" Ready");
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -185,15 +191,15 @@ void CExpensesRecordManagerDlg::InitExpensesListControl()
 		L"SNo",          // Caption for this header 
 		LVCFMT_CENTER,    // Relative position of items under header 
 		50);           // Width of items under header
-
+	
 	m_ExpensesList.InsertColumn(1, L"Date", LVCFMT_CENTER, 80);
 	m_ExpensesList.InsertColumn(2, L"Financial Year", LVCFMT_CENTER, 100);
 	m_ExpensesList.InsertColumn(3, L"Quarter", LVCFMT_CENTER, 50);
 	m_ExpensesList.InsertColumn(4, L"Main Item", LVCFMT_CENTER, 150);
 	m_ExpensesList.InsertColumn(5, L"Sub-Item", LVCFMT_CENTER, 150);
-	m_ExpensesList.InsertColumn(6, L"Rate", LVCFMT_CENTER, 70);
+	m_ExpensesList.InsertColumn(6, L"Rate (" + m_sRupee + L")", LVCFMT_CENTER, 70);
 	m_ExpensesList.InsertColumn(7, L"Quantity", LVCFMT_CENTER, 70);
-	m_ExpensesList.InsertColumn(8, L"Amount", LVCFMT_CENTER, 100);
+	m_ExpensesList.InsertColumn(8, L"Amount (" + m_sRupee + L")", LVCFMT_CENTER, 100);
 }
 
 void CExpensesRecordManagerDlg::InsertRecord(int row, Record & rec)
@@ -276,6 +282,37 @@ void CExpensesRecordManagerDlg::InitControls()
 	InitExpensesListControl();
 }
 
+int CExpensesRecordManagerDlg::UpdateDb()
+{
+	CString filename;
+	filename.Format(FILE_NAME_FORMAT, m_RecordVec[0]._fy.from, m_RecordVec[0]._fy.to,
+		m_RecordVec[0]._quater);
+
+	CFile _file;
+	if (!_file.Open(filename, CFile::modeCreate | CFile::modeWrite)) {
+		AfxMessageBox(L"Store Error: Failed to open the Database file");
+		SetDlgItemText(IDC_STATUS, L" Error");
+		return -1;
+	}
+	//_file.SeekToBegin();
+
+	CArchive ar(&_file, CArchive::store);
+
+	for (auto it = m_RecordVec.begin(); it != m_RecordVec.end(); ++it) {
+
+		Serialize(ar, *it);
+	}
+
+	m_ExpensesList.DeleteAllItems();
+	for (int i = m_RecordVec.size() - 1; i >= 0; --i) {
+
+		InsertRecord(i, m_RecordVec[i]);
+	}
+	
+	ar.Close();
+
+	return 0;
+}
 
 void CExpensesRecordManagerDlg::OnBnClickedBtnStore()
 {
@@ -298,7 +335,7 @@ void CExpensesRecordManagerDlg::OnBnClickedBtnStore()
 		return;
 	}
 
-	SetDlgItemText(IDC_STATUS, L"Saving...");
+	SetDlgItemText(IDC_STATUS, L" Saving...");
 
 	Record record;
 
@@ -343,8 +380,8 @@ void CExpensesRecordManagerDlg::OnBnClickedBtnStore()
 	
 	CFile _file;
 	if (!_file.Open(filename, CFile::modeNoTruncate | CFile::modeCreate | CFile::modeWrite)) {
-		AfxMessageBox(L"Store Error: Failed to open the Database file.");
-		SetDlgItemText(IDC_STATUS, L"Error.");
+		AfxMessageBox(L"Store Error: Failed to open the Database file");
+		SetDlgItemText(IDC_STATUS, L" Error");
 		return;
 	}
 	_file.SeekToEnd();
@@ -353,7 +390,7 @@ void CExpensesRecordManagerDlg::OnBnClickedBtnStore()
 	Serialize(ar, record);
 	ar.Close();
 
-	SetDlgItemText(IDC_STATUS, L"Saved.");
+	SetDlgItemText(IDC_STATUS, L" Saved");
 }
 
 int CExpensesRecordManagerDlg::Serialize(CArchive & ar, Record & rec)
@@ -428,12 +465,15 @@ int CExpensesRecordManagerDlg::Serialize(CArchive & ar, Record & rec)
 
 void CExpensesRecordManagerDlg::OnBnClickedBtnLoad()
 {
+	SetDlgItemText(IDC_STATUS, L"");
+	
 	int ret = 0;
 
 	int index = m_FySelCtrl.GetCurSel();
 	if (index == 0)
 	{
-		AfxMessageBox(L"Please select the Financial Year.");
+		AfxMessageBox(L"Please select the Financial Year");
+		SetDlgItemText(IDC_STATUS, L" Please select the Financial Year");
 		return;
 	}
 	int year = index + FY_START;
@@ -441,9 +481,12 @@ void CExpensesRecordManagerDlg::OnBnClickedBtnLoad()
 	int quarter = m_QuarterSelCtrl.GetCurSel();
 	if (quarter == 0)
 	{
-		AfxMessageBox(L"Please select the Quarter for selected Financial Year.");
+		AfxMessageBox(L"Please select the Quarter for selected Financial Year");
+		SetDlgItemText(IDC_STATUS, L" Please select the Quarter for selected Financial Year");
 		return;
 	}
+	
+	SetDlgItemText(IDC_STATUS, L" Loading...");
 
 	m_ExpensesList.DeleteAllItems();
 
@@ -454,6 +497,7 @@ void CExpensesRecordManagerDlg::OnBnClickedBtnLoad()
 	if (!_file.Open(filename, CFile::modeRead))
 	{
 		AfxMessageBox(L"No database for selected Financial Year and Quarter");
+		SetDlgItemText(IDC_STATUS, L" No database for selected Financial Year and Quarter");
 		return;
 	}
 
@@ -483,6 +527,8 @@ void CExpensesRecordManagerDlg::OnBnClickedBtnLoad()
 
 		InsertRecord(i, m_RecordVec[i]);
 	}
+
+	SetDlgItemText(IDC_STATUS, L" Load Complete");
 }
 
 
@@ -526,6 +572,7 @@ void CExpensesRecordManagerDlg::OnCbnSelchangeFySel()
 
 void CExpensesRecordManagerDlg::OnBnClickedBtnDownload()
 {
+	SetDlgItemText(IDC_STATUS, L"");
 
 	size_t count = m_RecordVec.size();
 	if (count < 1) {
@@ -551,14 +598,20 @@ void CExpensesRecordManagerDlg::OnBnClickedBtnDownload()
 		fopen_s(&_file, _pathAsci.m_psz, "w");
 		if (!_file) {
 			AfxMessageBox(L"Download: File open error.");
+			SetDlgItemText(IDC_STATUS, L" Download error");
 			return;
 		}
 
-		fprintf_s(_file, "SNo,Date,Finacial Year,Quarter,Main Item,Sub Item,Rate,Quantity,Amount\n");
+		SetDlgItemText(IDC_STATUS, L" Downloading...");
+
+		fprintf_s(_file, "SNo,Date,Finacial Year,Quarter,Main Item,Sub Item,\
+			Rate (Rs),Quantity,Amount (Rs)\n");
+		
+		unsigned long grandTotal = 0;
 
 		for (size_t i = 0; i < count; ++i) {
 		
-			fprintf_s(_file, "%d,%d/%d/%d,%d-%d,Q%d,%s,%s,Rs. %d,%d,Rs. %d\n",
+			fprintf_s(_file, "%d,%d/%d/%d,%d-%d,Q%d,%s,%s,%d,%d,%d\n",
 				i + 1,
 				m_RecordVec[i]._date.Day,
 				m_RecordVec[i]._date.Month,
@@ -571,12 +624,78 @@ void CExpensesRecordManagerDlg::OnBnClickedBtnDownload()
 				m_RecordVec[i]._rate,
 				m_RecordVec[i]._quantity,
 				m_RecordVec[i]._amount);
-		}
 
-		fclose(_file);
+			grandTotal += m_RecordVec[i]._amount;
+		}
+		
+		fprintf_s(_file, "\n,,,,,,,,%d\n", grandTotal);
+		
+		fclose(_file);		
 
 		CString _fileName = fileDlg.GetFileTitle();
-		_fileName += L" saved successfully.";
+
+		SetDlgItemText(IDC_STATUS, L" Downloaded to " + _fileName + L".csv");
+
+		_fileName += L" saved successfully";
 		MessageBox(_fileName, L"Information");
 	}
+}
+
+
+void CExpensesRecordManagerDlg::OnPopupDelete()
+{
+	SetDlgItemText(IDC_STATUS, L"");
+
+	int row = 0;
+	row = m_ExpensesList.GetSelectionMark();
+	
+	if (row < 0)
+	{
+		SetDlgItemText(IDC_STATUS, L" Nothing selected to delete");
+		return;
+	}
+	else
+	{
+		SetDlgItemText(IDC_STATUS, L" Deleting...");
+
+		m_RecordVec.erase(m_RecordVec.begin() + row, m_RecordVec.begin() + row + 1);
+
+		m_ExpensesList.DeleteItem(row);
+
+		if (UpdateDb() == 0)
+		{
+			SetDlgItemText(IDC_STATUS, L" Selected record deleted successfully");
+		}
+		else
+		{
+			AfxMessageBox(L"Error occured while updatig the record deletion updation to database");
+			SetDlgItemText(IDC_STATUS, L" Error occured while updatig the deleted record");
+		}
+	}
+	
+}
+
+
+void CExpensesRecordManagerDlg::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
+{
+	// Load the desired menu
+	CMenu mnuPopupSubmit;
+	mnuPopupSubmit.LoadMenu(IDR_CONTEXT_MENU);
+
+	// Get a pointer to the button
+	CListCtrl *pList;
+	pList = reinterpret_cast<CListCtrl *>(GetDlgItem(IDC_EXPENSES_LIST));
+
+	// Find the rectangle around the button
+	CRect rectList;
+	pList->GetWindowRect(&rectList);
+
+	// Get a pointer to the first item of the menu
+	CMenu *mnuPopupMenu = mnuPopupSubmit.GetSubMenu(0);
+	ASSERT(mnuPopupMenu);
+
+	// Find out if the user right-clicked the button
+	// because we are interested only in the button
+	if (rectList.PtInRect(point)) // Since the user right-clicked the button, display the context menu
+		mnuPopupMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, this);
 }

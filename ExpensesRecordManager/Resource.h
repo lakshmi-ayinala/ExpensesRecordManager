@@ -7,8 +7,8 @@
 #define IDS_ABOUTBOX                    101
 #define IDD_EXPENSESRECORDMANAGER_DIALOG 102
 #define IDR_MAINFRAME                   128
-#define IDI_ICON1                       130
 #define IDI_BILL                        130
+#define IDR_CONTEXT_MENU                131
 #define IDC_FY_SEL                      1000
 #define IDC_QUATER_SEL                  1001
 #define IDC_EXPENSES_LIST               1002
@@ -22,13 +22,14 @@
 #define IDC_BTN_LOAD                    1010
 #define IDC_BTN_DOWNLOAD                1011
 #define IDC_STATUS                      1012
+#define ID_POPUP_DELETE                 32771
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        131
-#define _APS_NEXT_COMMAND_VALUE         32771
+#define _APS_NEXT_RESOURCE_VALUE        132
+#define _APS_NEXT_COMMAND_VALUE         32772
 #define _APS_NEXT_CONTROL_VALUE         1013
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

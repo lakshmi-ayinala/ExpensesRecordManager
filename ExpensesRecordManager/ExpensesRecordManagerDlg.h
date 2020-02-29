@@ -5,6 +5,7 @@
 #pragma once
 
 #include <vector>
+#include <fstream>
 
 typedef struct {
 	int Day;
@@ -18,14 +19,17 @@ typedef struct {
 }FY;	// Financial Year
 
 typedef struct {
-	Date _date;
-	FY _fy;
 	int _quater;
-	char _mainItem[256];
-	char _subItem[256];
 	int _rate;
 	int _quantity;
 	int _amount;
+	Date _date;
+	FY _fy;
+	char _mainItem[256];
+	char _subItem[256];
+
+	///Reserved
+	char reserved[1024];
 }Record;
 
 // CExpensesRecordManagerDlg dialog
@@ -58,6 +62,7 @@ public:
 	void InitExpensesListControl();
 	void InsertRecord(int row, Record &rec);
 	int Serialize(CArchive &ar, Record &rec);
+	int UpdateDb();
 	void InitControls();
 	Date m_Today;
 	std::vector<Record> m_RecordVec;
@@ -73,5 +78,8 @@ public:
 	CComboBox m_QuarterSelCtrl;
 	CDateTimeCtrl m_DatePicker;
 	CStatic m_StatusCtrl;
+	CString m_sRupee;
 	afx_msg void OnBnClickedBtnDownload();
+	afx_msg void OnPopupDelete();
+	afx_msg void OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/);
 };
