@@ -22,6 +22,7 @@
 #define IDC_BTN_LOAD                    1010
 #define IDC_BTN_DOWNLOAD                1011
 #define IDC_STATUS                      1012
+#define IDC_VENDOR                      1013
 #define ID_POPUP_DELETE                 32771
 
 // Next default values for new objects
